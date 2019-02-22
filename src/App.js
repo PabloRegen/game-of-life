@@ -3,81 +3,74 @@ import React, { Component } from 'react';
 const totalBoardRows = 40;
 const totalBoardColumns = 50;
 
-const newStatusMatrix = (status) => {
-	/* 'boardStatus' becomes an array of 'rowOfStatus' arrays */
-	const boardStatus = [];
-
+const newBoardStatus = (cellStatus = () => Math.random() < 0.25) => {
+	const grid = [];
 	for (let r = 0; r < totalBoardRows; r++) {
-		const rowOfStatus = [];
-
+		const row = [];
 		for (let c = 0; c < totalBoardColumns; c++) {
-			rowOfStatus.push({status: status()});
+			row.push(cellStatus());
 		}
+		grid.push(row);
+	}
+	return grid;
+};
 
-		boardStatus.push(rowOfStatus);
+const BoardGrid = ({ boardStatus, onToggleCellStatus }) => {
+	function handleClick(r,c) {
+		onToggleCellStatus(r,c);
 	}
 
-	return boardStatus;
-}
+	const tr = [];
+	for (let r = 0; r < totalBoardRows; r++) {
+  		const td = [];
+  		for (let c = 0; c < totalBoardColumns; c++) {
+    		td.push(
+		        <td
+		        	key={`${r},${c}`}
+					className={boardStatus[r][c] ? 'alive' : 'dead'}
+					onClick={() => handleClick(r,c)}
+				/>
+    		);
+  		}
+  		tr.push(<tr key={r}>{td}</tr>);
+	}
+	return <table><tbody>{tr}</tbody></table>;
+};
 
 class App extends Component {
-	state = {
-      	boardStatus: newStatusMatrix(() => Math.random() < 0.25)
-    }
+	state = {boardStatus: newBoardStatus()}
 
-	randomizeBoardStatus = () => {
-		this.setState(prevState => ({
-			boardStatus: newStatusMatrix(() => Math.random() < 0.25)
-		}));
+	handleNewBoard = () => {
+		this.setState(prevState => ({boardStatus: newBoardStatus()}));
 	}
 
 	clearBoard = () => {
-		this.setState(prevState => ({
-			boardStatus: newStatusMatrix(() => false)
-		}));
+		this.setState(prevState => ({boardStatus: newBoardStatus(() => false)}));
 	}
 
-    generateBoardGrid = () => {
-    	/* 2D array: 'boardGrid' is an array of 'rowOfCells' arrays */
-    	const boardGrid = [];
-
-		for (let r = 0; r < totalBoardRows; r++) {
-      		const rowOfCells = [];
-
-      		for (let c = 0; c < totalBoardColumns; c++) {
-        		rowOfCells.push(
-			        <td
-			        	key={`${r},${c}`}
-						className={this.state.boardStatus[r][c].status ? 'alive' : 'dead'}
-						onClick={() => this.toggleCellStatus(r, c)} />
-        		);
-      		}
-
-      		boardGrid.push(<tr key={r}>{rowOfCells}</tr>);
-    	}
-
-    	return <table><tbody>{boardGrid}</tbody></table>;
-  	}
-
-  	toggleCellStatus(row,col) {
-	    const newBoardStatus = prevState => {
-	    	let tempBoardStatus = [...prevState.boardStatus]
-	    	tempBoardStatus[row][col].status = !tempBoardStatus[row][col].status;
+  	toggleCellStatus = (r,c) => {
+	    const toggleBoardStatus = prevState => {
+	    	const tempBoardStatus = [...prevState.boardStatus]
+	    	tempBoardStatus[r][c] = !tempBoardStatus[r][c];
 	    	return tempBoardStatus;
-	    }
+	    };
 
-		this.setState(prevState => ({
-			boardStatus: newBoardStatus(prevState)
-		}))
+		this.setState(prevState => ({boardStatus: toggleBoardStatus(prevState)}));
 	}
 
 	render() {
+		const { boardStatus } = this.state;
+
     	return (
     		<div>
     			<h2>Game of Life</h2>
-	        	{this.generateBoardGrid()}
-	      		<button type='button' onClick={this.randomizeBoardStatus}>Randomize</button>
+    			<BoardGrid
+    				boardStatus={boardStatus}
+    				onToggleCellStatus={this.toggleCellStatus}
+    			/>
+	      		<button type='button' onClick={this.handleNewBoard}>New Board</button>
 	      		<button type='button' onClick={this.clearBoard}>Clear Board</button>
+	      		<button  type='button' onClick={this.handleStart}>Start</button>
       		</div>
     	);
   	}
