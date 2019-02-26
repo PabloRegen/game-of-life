@@ -39,15 +39,22 @@ const BoardGrid = ({ boardStatus, onToggleCellStatus }) => {
 class App extends Component {
 	state = {
 		boardStatus: newBoardStatus(),
+		generation: 0,
 		gameRunning: false
 	}
 
 	handleNewBoard = () => {
-		this.setState(prevState => ({boardStatus: newBoardStatus()}));
+		this.setState(prevState => ({
+			boardStatus: newBoardStatus(),
+			generation: 0
+		}));
 	}
 
 	handleClearBoard = () => {
-		this.setState(prevState => ({boardStatus: newBoardStatus(() => false)}));
+		this.setState(prevState => ({
+			boardStatus: newBoardStatus(() => false),
+			generation: 0
+		}));
 	}
 
 	toggleCellStatus = (r,c) => {
@@ -57,49 +64,59 @@ class App extends Component {
 	    	return tempBoardStatus;
 	    };
 
-		this.setState(prevState => ({boardStatus: toggleBoardStatus(prevState)}));
+		this.setState(prevState => ({
+			boardStatus: toggleBoardStatus(prevState)
+		}));
 	}
 
-	handleStart = () => {
-		/*  Prevent user from starting more than 1 timer simultaneously */
-		if (this.timerID) return;
+	handleStep = (gameRunning = false) => {
+		const { boardStatus } = this.state;
 
-		this.timerID = setInterval(() => {
-			const { boardStatus } = this.state;
+		/* Must deep clone boardStatus to avoid modifying it by reference when updating newBoardStatus.
+		Can't do `const newBoardStatus = [...boardStatus]` 
+		because Spread syntax effectively goes one level deep while copying an array. 
+		Therefore, it may be unsuitable for copying multidimensional arrays.
+		Note: JSON.parse(JSON.stringify(oldObject)) doesn't work if the cloned object uses functions */
+		const newBoardStatus = JSON.parse(JSON.stringify(boardStatus));
 
-			/* Must deep clone boardStatus to avoid modifying it by reference when updating newBoardStatus.
-			Can't do `const newBoardStatus = [...boardStatus]` 
-			because Spread syntax effectively goes one level deep while copying an array. 
-			Therefore, it may be unsuitable for copying multidimensional arrays.
-			Note: JSON.parse(JSON.stringify(oldObject)) doesn't work if the cloned object uses functions */
-			const newBoardStatus = JSON.parse(JSON.stringify(boardStatus));
+		const amountTrueNeighbors = (r,c) => {
+			let trueNeighbors = 0;
+			const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]];
+			neighbors.forEach(neighbor => {
+				const x = r + neighbor[0];
+				const y = c + neighbor[1];
+				const isNeighborOnBoard = (x >= 0 && x < totalBoardRows && y >= 0 && y < totalBoardColumns);
+				/* No need to count more than 4 alive neighbors */
+				if (trueNeighbors < 4 && isNeighborOnBoard && boardStatus[x][y]) {
+					trueNeighbors++;
+				}
+			})
+			return trueNeighbors;
+		}
 
-			for (let r = 0; r < totalBoardRows; r++) {
-				for (let c = 0; c < totalBoardColumns; c++) { 
-					let trueNeighbors = 0;
-    				const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]];
-    				neighbors.forEach(neighbor => {
-    					const x = r + neighbor[0];
-    					const y = c + neighbor[1];
-    					const isNeighborOnBoard = (x >= 0 && x < totalBoardRows && y >= 0 && y < totalBoardColumns);
-    					/* No need to count more than 4 alive neighbors */
-    					if (trueNeighbors < 4 && isNeighborOnBoard && boardStatus[x][y]) {
-	    					trueNeighbors++;
-	    				}
-    				})
+		for (let r = 0; r < totalBoardRows; r++) {
+			for (let c = 0; c < totalBoardColumns; c++) {
+				const totalTrueNeighbors = amountTrueNeighbors(r,c);
 
-					if (!boardStatus[r][c]) {
-						if (trueNeighbors === 3) newBoardStatus[r][c] = true;
-					} else {
-						if (trueNeighbors < 2 || trueNeighbors > 3) newBoardStatus[r][c] = false;
-					}
+				if (!boardStatus[r][c]) {
+					if (totalTrueNeighbors === 3) newBoardStatus[r][c] = true;
+				} else {
+					if (totalTrueNeighbors < 2 || totalTrueNeighbors > 3) newBoardStatus[r][c] = false;
 				}
 			}
-			this.setState(prevState => ({
-				boardStatus: newBoardStatus,
-				gameRunning: true
-			}));
-		}, 1000);
+		}
+
+		this.setState(prevState => ({
+			boardStatus: newBoardStatus,
+			gameRunning: gameRunning,
+			generation: prevState.generation + 1
+		}));
+	}
+
+	handleRun = () => {
+		/*  Prevent user from starting more than 1 timer simultaneously */
+		if (this.timerID) return;
+		this.timerID = setInterval(() => {this.handleStep(true)}, 1000);
 	}
 
 	handleStop = () => {
@@ -109,14 +126,14 @@ class App extends Component {
 		this.setState(prevState => ({gameRunning: false}));
 	}
 
-	startStopButton = () => {
+	runStopButton = () => {
 		return this.state.gameRunning ?
 		<button type='button' onClick={this.handleStop}>Stop</button> :
-		<button type='button' onClick={this.handleStart}>Start</button>;
+		<button type='button' onClick={this.handleRun}>Run</button>;
 	}
 
 	render() {
-		const { boardStatus } = this.state;
+		const { boardStatus, generation } = this.state;
 
     	return (
     		<div>
@@ -125,9 +142,11 @@ class App extends Component {
     				boardStatus={boardStatus}
     				onToggleCellStatus={this.toggleCellStatus}
     			/>
+    			{`Generation: ${generation}`}
 	      		<button type='button' onClick={this.handleNewBoard}>New Board</button>
 	      		<button type='button' onClick={this.handleClearBoard}>Clear Board</button>
-	      		{this.startStopButton()}
+	      		{this.runStopButton()}
+	      		<button type='button' onClick={this.handleStep}>Step</button>
       		</div>
     	);
   	}
