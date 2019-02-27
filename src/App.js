@@ -72,12 +72,12 @@ class App extends Component {
 	handleStep = (gameRunning = false) => {
 		const { boardStatus } = this.state;
 
-		/* Must deep clone boardStatus to avoid modifying it by reference when updating newBoardStatus.
-		Can't do `const newBoardStatus = [...boardStatus]` 
+		/* Must deep clone boardStatus to avoid modifying it by reference when updating clonedBoardStatus.
+		Can't do `const clonedBoardStatus = [...boardStatus]`
 		because Spread syntax effectively goes one level deep while copying an array. 
 		Therefore, it may be unsuitable for copying multidimensional arrays.
 		Note: JSON.parse(JSON.stringify(oldObject)) doesn't work if the cloned object uses functions */
-		const newBoardStatus = JSON.parse(JSON.stringify(boardStatus));
+		const clonedBoardStatus = JSON.parse(JSON.stringify(boardStatus));
 
 		const amountTrueNeighbors = (r,c) => {
 			let trueNeighbors = 0;
@@ -99,15 +99,15 @@ class App extends Component {
 				const totalTrueNeighbors = amountTrueNeighbors(r,c);
 
 				if (!boardStatus[r][c]) {
-					if (totalTrueNeighbors === 3) newBoardStatus[r][c] = true;
+					if (totalTrueNeighbors === 3) clonedBoardStatus[r][c] = true;
 				} else {
-					if (totalTrueNeighbors < 2 || totalTrueNeighbors > 3) newBoardStatus[r][c] = false;
+					if (totalTrueNeighbors < 2 || totalTrueNeighbors > 3) clonedBoardStatus[r][c] = false;
 				}
 			}
 		}
 
 		this.setState(prevState => ({
-			boardStatus: newBoardStatus,
+			boardStatus: clonedBoardStatus,
 			gameRunning: gameRunning,
 			generation: prevState.generation + 1
 		}));
