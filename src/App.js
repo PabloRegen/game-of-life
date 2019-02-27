@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 const totalBoardRows = 40;
-const totalBoardColumns = 50;
+const totalBoardColumns = 60;
 
 const newBoardStatus = (cellStatus = () => Math.random() < 0.25) => {
 	const grid = [];
@@ -36,11 +36,29 @@ const BoardGrid = ({ boardStatus, onToggleCellStatus }) => {
 	return <table><tbody>{tr}</tbody></table>;
 };
 
+const Slider = ({ speed, onSpeedChange }) => {
+	function handleChange(e) {
+		onSpeedChange(e.target.value)
+	}
+
+	return (
+			<input
+				type='range'
+				name='slider'
+				min='100'
+				max='1000'
+				step='100'
+				value={speed}
+				onChange={handleChange} />
+	);
+}
+
 class App extends Component {
 	state = {
 		boardStatus: newBoardStatus(),
 		generation: 0,
-		gameRunning: false
+		gameRunning: false,
+		speed: 500
 	}
 
 	handleNewBoard = () => {
@@ -116,7 +134,7 @@ class App extends Component {
 	handleRun = () => {
 		/*  Prevent user from starting more than 1 timer simultaneously */
 		if (this.timerID) return;
-		this.timerID = setInterval(() => {this.handleStep(true)}, 1000);
+		this.timerID = setInterval(() => {this.handleStep(true)}, this.state.speed);
 	}
 
 	handleStop = () => {
@@ -132,21 +150,23 @@ class App extends Component {
 		<button type='button' onClick={this.handleRun}>Run</button>;
 	}
 
+	speedChange = speed => {
+		this.setState({speed: speed});
+	}
+
 	render() {
-		const { boardStatus, generation } = this.state;
+		const { boardStatus, generation, speed } = this.state;
 
     	return (
     		<div>
     			<h2>Game of Life</h2>
-    			<BoardGrid
-    				boardStatus={boardStatus}
-    				onToggleCellStatus={this.toggleCellStatus}
-    			/>
-    			{`Generation: ${generation}`}
+    			<BoardGrid boardStatus={boardStatus} onToggleCellStatus={this.toggleCellStatus} />
 	      		<button type='button' onClick={this.handleNewBoard}>New Board</button>
 	      		<button type='button' onClick={this.handleClearBoard}>Clear Board</button>
 	      		{this.runStopButton()}
 	      		<button type='button' onClick={this.handleStep}>Step</button>
+	      		<Slider speed={speed} onSpeedChange={this.speedChange} />
+	      		{`Generation: ${generation}`}
       		</div>
     	);
   	}
