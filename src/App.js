@@ -132,25 +132,27 @@ class App extends Component {
 
 	componentDidUpdate(prevProps, prevState) {
 		const { isGameRunning, speed } = this.state;
+		const speedChanged = prevState.speed !== speed;
+		const gameStarted = !prevState.isGameRunning && isGameRunning;
+		const gameStopped = prevState.isGameRunning && !isGameRunning;
 
-		if (isGameRunning && prevState.speed !== speed) {
+		if ((isGameRunning && speedChanged) || gameStopped) {
 			clearInterval(this.timerID);
-			this.timerID = setInterval(() => {this.handleStep()}, speed);
+		}
+
+		if ((isGameRunning && speedChanged) || gameStarted) {
+			this.timerID = setInterval(() => {
+				this.handleStep();
+			}, speed);
 		}
 	}
 
 	handleRun = () => {
-		/*  Prevent user from starting more than 1 timer simultaneously */
-		if (this.timerID) return;
-		this.timerID = setInterval(() => {this.handleStep()}, this.state.speed);
-		this.setState(prevState => ({isGameRunning: true}));
+		this.setState(prevState => ({ isGameRunning: true }));
 	}
 
 	handleStop = () => {
-		clearInterval(this.timerID);
-		/* Remove this.timerID value so a timer can be restarted */
-		this.timerID = undefined;
-		this.setState(prevState => ({isGameRunning: false}));
+		this.setState(prevState => ({ isGameRunning: false }));
 	}
 
 	runStopButton = () => {
@@ -160,7 +162,7 @@ class App extends Component {
 	}
 
 	speedChange = newSpeed => {
-		this.setState(prevState => ({speed: newSpeed}));
+		this.setState(prevState => ({ speed: newSpeed }));
 	}
 
 	render() {
