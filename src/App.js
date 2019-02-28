@@ -87,7 +87,7 @@ class App extends Component {
 		}));
 	}
 
-	handleStep = (gameRunning = false) => {
+	handleStep = () => {
 		const { boardStatus } = this.state;
 
 		/* Must deep clone boardStatus to avoid modifying it by reference when updating clonedBoardStatus.
@@ -126,22 +126,24 @@ class App extends Component {
 
 		this.setState(prevState => ({
 			boardStatus: clonedBoardStatus,
-			gameRunning: gameRunning,
 			generation: prevState.generation + 1
 		}));
 	}
 
 	componentDidUpdate(prevProps, prevState) {
-		if (this.state.gameRunning && prevState.speed !== this.state.speed) {
+		const { gameRunning, speed } = this.state;
+
+		if (gameRunning && prevState.speed !== speed) {
 			clearInterval(this.timerID);
-			this.timerID = setInterval(() => {this.handleStep(true)}, this.state.speed);
+			this.timerID = setInterval(() => {this.handleStep()}, speed);
 		}
 	}
 
 	handleRun = () => {
 		/*  Prevent user from starting more than 1 timer simultaneously */
 		if (this.timerID) return;
-		this.timerID = setInterval(() => {this.handleStep(true)}, this.state.speed);
+		this.timerID = setInterval(() => {this.handleStep()}, this.state.speed);
+		this.setState(prevState => ({gameRunning: true}));
 	}
 
 	handleStop = () => {
@@ -150,8 +152,6 @@ class App extends Component {
 		this.timerID = undefined;
 		this.setState(prevState => ({gameRunning: false}));
 	}
-
-
 
 	runStopButton = () => {
 		return this.state.gameRunning ?
@@ -164,7 +164,7 @@ class App extends Component {
 	}
 
 	render() {
-		const { boardStatus, generation, speed } = this.state;
+		const { boardStatus, gameRunning, generation, speed } = this.state;
 
     	return (
     		<div>
@@ -173,7 +173,7 @@ class App extends Component {
 	      		<button type='button' onClick={this.handleNewBoard}>New Board</button>
 	      		<button type='button' onClick={this.handleClearBoard}>Clear Board</button>
 	      		{this.runStopButton()}
-	      		<button type='button' onClick={this.handleStep}>Step</button>
+				<button type='button' disabled={gameRunning} onClick={this.handleStep}>Step</button>
 	      		<Slider speed={speed} onSpeedChange={this.speedChange} />
 	      		{`Generation: ${generation}`}
       		</div>
