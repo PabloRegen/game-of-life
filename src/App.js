@@ -57,7 +57,7 @@ class App extends Component {
 	state = {
 		boardStatus: newBoardStatus(),
 		generation: 0,
-		gameRunning: false,
+		isGameRunning: false,
 		speed: 500
 	}
 
@@ -131,9 +131,9 @@ class App extends Component {
 	}
 
 	componentDidUpdate(prevProps, prevState) {
-		const { gameRunning, speed } = this.state;
+		const { isGameRunning, speed } = this.state;
 
-		if (gameRunning && prevState.speed !== speed) {
+		if (isGameRunning && prevState.speed !== speed) {
 			clearInterval(this.timerID);
 			this.timerID = setInterval(() => {this.handleStep()}, speed);
 		}
@@ -143,18 +143,18 @@ class App extends Component {
 		/*  Prevent user from starting more than 1 timer simultaneously */
 		if (this.timerID) return;
 		this.timerID = setInterval(() => {this.handleStep()}, this.state.speed);
-		this.setState(prevState => ({gameRunning: true}));
+		this.setState(prevState => ({isGameRunning: true}));
 	}
 
 	handleStop = () => {
 		clearInterval(this.timerID);
 		/* Remove this.timerID value so a timer can be restarted */
 		this.timerID = undefined;
-		this.setState(prevState => ({gameRunning: false}));
+		this.setState(prevState => ({isGameRunning: false}));
 	}
 
 	runStopButton = () => {
-		return this.state.gameRunning ?
+		return this.state.isGameRunning ?
 		<button type='button' onClick={this.handleStop}>Stop</button> :
 		<button type='button' onClick={this.handleRun}>Run</button>;
 	}
@@ -164,7 +164,7 @@ class App extends Component {
 	}
 
 	render() {
-		const { boardStatus, gameRunning, generation, speed } = this.state;
+		const { boardStatus, isGameRunning, generation, speed } = this.state;
 
     	return (
     		<div>
@@ -173,7 +173,7 @@ class App extends Component {
 	      		<button type='button' onClick={this.handleNewBoard}>New Board</button>
 	      		<button type='button' onClick={this.handleClearBoard}>Clear Board</button>
 	      		{this.runStopButton()}
-				<button type='button' disabled={gameRunning} onClick={this.handleStep}>Step</button>
+				<button type='button' disabled={isGameRunning} onClick={this.handleStep}>Step</button>
 	      		<Slider speed={speed} onSpeedChange={this.speedChange} />
 	      		{`Generation: ${generation}`}
       		</div>
