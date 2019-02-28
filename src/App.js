@@ -42,14 +42,14 @@ const Slider = ({ speed, onSpeedChange }) => {
 	}
 
 	return (
-			<input
-				type='range'
-				name='slider'
-				min='100'
-				max='1000'
-				step='100'
-				value={speed}
-				onChange={handleChange} />
+		<input
+			type='range'
+			name='slider'
+			min='50'
+			max='1000'
+			step='50'
+			value={speed}
+			onChange={handleChange} />
 	);
 }
 
@@ -94,7 +94,7 @@ class App extends Component {
 		Can't do `const clonedBoardStatus = [...boardStatus]`
 		because Spread syntax effectively goes one level deep while copying an array. 
 		Therefore, it may be unsuitable for copying multidimensional arrays.
-		Note: JSON.parse(JSON.stringify(oldObject)) doesn't work if the cloned object uses functions */
+		Note: JSON.parse(JSON.stringify(obj)) doesn't work if the cloned object uses functions */
 		const clonedBoardStatus = JSON.parse(JSON.stringify(boardStatus));
 
 		const amountTrueNeighbors = (r,c) => {
@@ -110,7 +110,7 @@ class App extends Component {
 				}
 			})
 			return trueNeighbors;
-		}
+		};
 
 		for (let r = 0; r < totalBoardRows; r++) {
 			for (let c = 0; c < totalBoardColumns; c++) {
@@ -131,6 +131,13 @@ class App extends Component {
 		}));
 	}
 
+	componentDidUpdate(prevProps, prevState) {
+		if (this.state.gameRunning && prevState.speed !== this.state.speed) {
+			clearInterval(this.timerID);
+			this.timerID = setInterval(() => {this.handleStep(true)}, this.state.speed);
+		}
+	}
+
 	handleRun = () => {
 		/*  Prevent user from starting more than 1 timer simultaneously */
 		if (this.timerID) return;
@@ -144,14 +151,16 @@ class App extends Component {
 		this.setState(prevState => ({gameRunning: false}));
 	}
 
+
+
 	runStopButton = () => {
 		return this.state.gameRunning ?
 		<button type='button' onClick={this.handleStop}>Stop</button> :
 		<button type='button' onClick={this.handleRun}>Run</button>;
 	}
 
-	speedChange = speed => {
-		this.setState({speed: speed});
+	speedChange = newSpeed => {
+		this.setState(prevState => ({speed: newSpeed}));
 	}
 
 	render() {
