@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 const totalBoardRows = 40;
 const totalBoardColumns = 60;
 
-const newBoardStatus = (cellStatus = () => Math.random() < 0.25) => {
+const newBoardStatus = (cellStatus = () => Math.random() < 0.3) => {
 	const grid = [];
 	for (let r = 0; r < totalBoardRows; r++) {
 		grid[r] = [];
@@ -15,9 +15,7 @@ const newBoardStatus = (cellStatus = () => Math.random() < 0.25) => {
 };
 
 const BoardGrid = ({ boardStatus, onToggleCellStatus }) => {
-	function handleClick(r,c) {
-		onToggleCellStatus(r,c);
-	}
+	const handleClick = (r,c) => onToggleCellStatus(r,c);
 
 	const tr = [];
 	for (let r = 0; r < totalBoardRows; r++) {
@@ -37,14 +35,11 @@ const BoardGrid = ({ boardStatus, onToggleCellStatus }) => {
 };
 
 const Slider = ({ speed, onSpeedChange }) => {
-	function handleChange(e) {
-		onSpeedChange(e.target.value)
-	}
+	const handleChange = e => onSpeedChange(e.target.value);
 
 	return (
 		<input
 			type='range'
-			name='slider'
 			min='50'
 			max='1000'
 			step='50'
@@ -61,11 +56,10 @@ class App extends Component {
 		speed: 500
 	}
 
-	handleNewBoard = () => {
-		this.setState(prevState => ({
-			boardStatus: newBoardStatus(),
-			generation: 0
-		}));
+	runStopButton = () => {
+		return this.state.isGameRunning ?
+			<button type='button' onClick={this.handleStop}>Stop</button> :
+			<button type='button' onClick={this.handleRun}>Start</button>;
 	}
 
 	handleClearBoard = () => {
@@ -75,7 +69,14 @@ class App extends Component {
 		}));
 	}
 
-	toggleCellStatus = (r,c) => {
+	handleNewBoard = () => {
+		this.setState(prevState => ({
+			boardStatus: newBoardStatus(),
+			generation: 0
+		}));
+	}
+
+	handleToggleCellStatus = (r,c) => {
 	    const toggleBoardStatus = prevState => {
 	    	const tempBoardStatus = [...prevState.boardStatus]
 	    	tempBoardStatus[r][c] = !tempBoardStatus[r][c];
@@ -130,6 +131,18 @@ class App extends Component {
 		}));
 	}
 
+	handleSpeedChange = newSpeed => {
+		this.setState(prevState => ({ speed: newSpeed }));
+	}
+
+	handleRun = () => {
+		this.setState(prevState => ({ isGameRunning: true }));
+	}
+
+	handleStop = () => {
+		this.setState(prevState => ({ isGameRunning: false }));
+	}
+
 	componentDidUpdate(prevProps, prevState) {
 		const { isGameRunning, speed } = this.state;
 		const speedChanged = prevState.speed !== speed;
@@ -147,40 +160,30 @@ class App extends Component {
 		}
 	}
 
-	handleRun = () => {
-		this.setState(prevState => ({ isGameRunning: true }));
-	}
-
-	handleStop = () => {
-		this.setState(prevState => ({ isGameRunning: false }));
-	}
-
-	runStopButton = () => {
-		return this.state.isGameRunning ?
-		<button type='button' onClick={this.handleStop}>Stop</button> :
-		<button type='button' onClick={this.handleRun}>Run</button>;
-	}
-
-	speedChange = newSpeed => {
-		this.setState(prevState => ({ speed: newSpeed }));
-	}
-
 	render() {
 		const { boardStatus, isGameRunning, generation, speed } = this.state;
 
     	return (
     		<div>
-    			<h2>Game of Life</h2>
-    			<BoardGrid boardStatus={boardStatus} onToggleCellStatus={this.toggleCellStatus} />
-	      		<button type='button' onClick={this.handleNewBoard}>New Board</button>
-	      		<button type='button' onClick={this.handleClearBoard}>Clear Board</button>
-	      		{this.runStopButton()}
-				<button type='button' disabled={isGameRunning} onClick={this.handleStep}>Step</button>
-	      		<Slider speed={speed} onSpeedChange={this.speedChange} />
-	      		{`Generation: ${generation}`}
-      		</div>
-    	);
-  	}
+				<h1>Game of Life</h1>
+				<BoardGrid boardStatus={boardStatus} onToggleCellStatus={this.handleToggleCellStatus} />
+				<div className='flexRow upperControls'>
+					<span>
+						{'+ '}
+						<Slider speed={speed} onSpeedChange={this.handleSpeedChange} />
+						{' -'}
+					</span>
+					{`Generation: ${generation}`}
+				</div>
+				<div className='flexRow lowerControls'>
+					{this.runStopButton()}
+					<button type='button' disabled={isGameRunning} onClick={this.handleStep}>Step</button>
+					<button type='button' onClick={this.handleClearBoard}>Clear Board</button>
+					<button type='button' onClick={this.handleNewBoard}>New Board</button>
+				</div>
+			</div>
+		);
+	}
 }
 
 export default App;
