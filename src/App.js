@@ -63,24 +63,24 @@ class App extends Component {
 	}
 
 	handleClearBoard = () => {
-		this.setState(prevState => ({
+		this.setState({
 			boardStatus: newBoardStatus(() => false),
 			generation: 0
-		}));
+		});
 	}
 
 	handleNewBoard = () => {
-		this.setState(prevState => ({
+		this.setState({
 			boardStatus: newBoardStatus(),
 			generation: 0
-		}));
+		});
 	}
 
 	handleToggleCellStatus = (r,c) => {
 	    const toggleBoardStatus = prevState => {
-	    	const tempBoardStatus = [...prevState.boardStatus]
-	    	tempBoardStatus[r][c] = !tempBoardStatus[r][c];
-	    	return tempBoardStatus;
+			const clonedBoardStatus = JSON.parse(JSON.stringify(prevState.boardStatus));
+			clonedBoardStatus[r][c] = !clonedBoardStatus[r][c];
+			return clonedBoardStatus;
 	    };
 
 		this.setState(prevState => ({
@@ -89,58 +89,62 @@ class App extends Component {
 	}
 
 	handleStep = () => {
-		const { boardStatus } = this.state;
+		const nextStep = prevState => {
+			const boardStatus = prevState.boardStatus;
 
-		/* Must deep clone boardStatus to avoid modifying it by reference when updating clonedBoardStatus.
-		Can't do `const clonedBoardStatus = [...boardStatus]`
-		because Spread syntax effectively goes one level deep while copying an array. 
-		Therefore, it may be unsuitable for copying multidimensional arrays.
-		Note: JSON.parse(JSON.stringify(obj)) doesn't work if the cloned object uses functions */
-		const clonedBoardStatus = JSON.parse(JSON.stringify(boardStatus));
+			/* Must deep clone boardStatus to avoid modifying it by reference when updating clonedBoardStatus.
+			Can't use `const clonedBoardStatus = [...boardStatus]`
+			because Spread syntax effectively goes one level deep while copying an array. 
+			Therefore, it may be unsuitable for copying multidimensional arrays.
+			Note: JSON.parse(JSON.stringify(obj)) doesn't work if the cloned object uses functions */
+			const clonedBoardStatus = JSON.parse(JSON.stringify(boardStatus));
 
-		const amountTrueNeighbors = (r,c) => {
-			let trueNeighbors = 0;
-			const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]];
-			neighbors.forEach(neighbor => {
-				const x = r + neighbor[0];
-				const y = c + neighbor[1];
-				const isNeighborOnBoard = (x >= 0 && x < totalBoardRows && y >= 0 && y < totalBoardColumns);
-				/* No need to count more than 4 alive neighbors */
-				if (trueNeighbors < 4 && isNeighborOnBoard && boardStatus[x][y]) {
-					trueNeighbors++;
-				}
-			})
-			return trueNeighbors;
-		};
+			const amountTrueNeighbors = (r,c) => {
+				let trueNeighbors = 0;
+				const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]];
+				neighbors.forEach(neighbor => {
+					const x = r + neighbor[0];
+					const y = c + neighbor[1];
+					const isNeighborOnBoard = (x >= 0 && x < totalBoardRows && y >= 0 && y < totalBoardColumns);
+					/* No need to count more than 4 alive neighbors due to rules */
+					if (trueNeighbors < 4 && isNeighborOnBoard && boardStatus[x][y]) {
+						trueNeighbors++;
+					}
+				})
+				return trueNeighbors;
+			};
 
-		for (let r = 0; r < totalBoardRows; r++) {
-			for (let c = 0; c < totalBoardColumns; c++) {
-				const totalTrueNeighbors = amountTrueNeighbors(r,c);
+			for (let r = 0; r < totalBoardRows; r++) {
+				for (let c = 0; c < totalBoardColumns; c++) {
+					const totalTrueNeighbors = amountTrueNeighbors(r,c);
 
-				if (!boardStatus[r][c]) {
-					if (totalTrueNeighbors === 3) clonedBoardStatus[r][c] = true;
-				} else {
-					if (totalTrueNeighbors < 2 || totalTrueNeighbors > 3) clonedBoardStatus[r][c] = false;
+					if (!boardStatus[r][c]) {
+						if (totalTrueNeighbors === 3) clonedBoardStatus[r][c] = true;
+					} else {
+						if (totalTrueNeighbors < 2 || totalTrueNeighbors > 3) clonedBoardStatus[r][c] = false;
+					}
 				}
 			}
+
+			return clonedBoardStatus;
 		}
 
 		this.setState(prevState => ({
-			boardStatus: clonedBoardStatus,
+			boardStatus: nextStep(prevState),
 			generation: prevState.generation + 1
 		}));
 	}
 
 	handleSpeedChange = newSpeed => {
-		this.setState(prevState => ({ speed: newSpeed }));
+		this.setState({ speed: newSpeed });
 	}
 
 	handleRun = () => {
-		this.setState(prevState => ({ isGameRunning: true }));
+		this.setState({ isGameRunning: true });
 	}
 
 	handleStop = () => {
-		this.setState(prevState => ({ isGameRunning: false }));
+		this.setState({ isGameRunning: false });
 	}
 
 	componentDidUpdate(prevProps, prevState) {
