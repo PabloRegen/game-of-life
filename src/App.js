@@ -54,7 +54,7 @@ class App extends Component {
 		generation: 0,
 		isGameRunning: false,
 		speed: 500
-	}
+	};
 
 	runStopButton = () => {
 		return this.state.isGameRunning ?
@@ -100,18 +100,18 @@ class App extends Component {
 			const clonedBoardStatus = JSON.parse(JSON.stringify(boardStatus));
 
 			const amountTrueNeighbors = (r,c) => {
-				let trueNeighbors = 0;
 				const neighbors = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1]];
-				neighbors.forEach(neighbor => {
+				return neighbors.reduce((trueNeighbors, neighbor) => {
 					const x = r + neighbor[0];
 					const y = c + neighbor[1];
 					const isNeighborOnBoard = (x >= 0 && x < totalBoardRows && y >= 0 && y < totalBoardColumns);
 					/* No need to count more than 4 alive neighbors due to rules */
 					if (trueNeighbors < 4 && isNeighborOnBoard && boardStatus[x][y]) {
-						trueNeighbors++;
+						return trueNeighbors + 1;
+					} else {
+						return trueNeighbors;
 					}
-				})
-				return trueNeighbors;
+				}, 0);
 			};
 
 			for (let r = 0; r < totalBoardRows; r++) {
@@ -127,7 +127,7 @@ class App extends Component {
 			}
 
 			return clonedBoardStatus;
-		}
+		};
 
 		this.setState(prevState => ({
 			boardStatus: nextStep(prevState),
