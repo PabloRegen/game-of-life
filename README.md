@@ -2,7 +2,7 @@
 
 An implementation of the Game of Life
 
-[Play the game](https://pabloregen.github.io/game-of-life/) and check out [how I coded it with React](https://medium.com/@pabloregen/coding-the-game-of-life-with-react-7de2385b7356)
+[Play the game](https://pabloregen.github.io/game-of-life/) and check out my article explaining [how I coded it with React](https://medium.com/@pabloregen/coding-the-game-of-life-with-react-7de2385b7356)
 
 ![Game of Life](./public/game_of_life.jpg?raw=true "Game of Life")
 
