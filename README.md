@@ -2,7 +2,11 @@
 
 An implementation of the Game of Life
 
-Game: https://pabloregen.github.io/game-of-life/
+Play the game: https://pabloregen.github.io/game-of-life/
+
+How I coded the game with React: https://medium.com/@pabloregen/coding-the-game-of-life-with-react-7de2385b7356
+
+![Game of Life](./public/game_of_life.jpg?raw=true "Game of Life")
 
 ## Technologies
 * React
@@ -21,5 +25,3 @@ The universe of the Game of Life is an infinite two-dimensional orthogonal grid 
 The initial pattern constitutes the seed of the system. The first generation is created by applying the above rules simultaneously to every cell in the seed—births and deaths occur simultaneously, and the discrete moment at which this happens is sometimes called a tick (in other words, each generation is a pure function of the preceding one). The rules continue to be applied repeatedly to create further generations.
 
 For game's history and further details visit [Wikipedia](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life)
-
-![Game of Life](./public/game_of_life.jpg?raw=true "Game of Life")
