@@ -44,9 +44,10 @@ const Slider = ({ speed, onSpeedChange }) => {
 			max='1000'
 			step='50'
 			value={speed}
-			onChange={handleChange} />
+			onChange={handleChange}
+		/>
 	);
-}
+};
 
 class App extends Component {
 	state = {
